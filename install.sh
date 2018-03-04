@@ -18,23 +18,21 @@ build_cpp_framework(){
 	cd /root/sql/
 	sed -i "s/proot@appinside/h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} /g" `grep proot@appinside -rl ./exec-sql.sh`
 	
-	#if [ $(mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} 'use tars_property') -eq 1 ];
-	#then
-		chmod u+x /root/sql/exec-sql.sh
-		/root/sql/exec-sql.sh
-	#fi
+	chmod u+x /root/sql/exec-sql.sh
+	/root/sql/exec-sql.sh
+
 }
 
 install_base_services(){
 	echo "base services ...."
 	
-	cd /root/
+	cd /root
 	mv t*.tgz /data
-	
-	#mkdir -p /data/tars/tarsconfig_data && ln -s /data/tars/tarsconfig_data /usr/local/app/tars/tarsconfig/data
-	#mkdir -p /data/tars/tarsnode_data && ln -s /data/tars/tarsnode_data /usr/local/app/tars/tarsnode/data
-	#mkdir -p /data/tars/tarspatch_data && ln -s /data/tars/tarspatch_data /usr/local/app/tars/tarspatch/data
-	#mkdir -p /data/tars/tarsregistry_data && ln -s /data/tars/tarsregistry_data /usr/local/app/tars/tarsregistry/data
+
+	# mkdir -p /data/tars/tarsconfig_data && ln -s /data/tars/tarsconfig_data /usr/local/app/tars/tarsconfig/data
+	# mkdir -p /data/tars/tarsnode_data && ln -s /data/tars/tarsnode_data /usr/local/app/tars/tarsnode/data
+	# mkdir -p /data/tars/tarspatch_data && ln -s /data/tars/tarspatch_data /usr/local/app/tars/tarspatch/data
+	# mkdir -p /data/tars/tarsregistry_data && ln -s /data/tars/tarsregistry_data /usr/local/app/tars/tarsregistry/data
 
 	##核心基础服务配置修改
 	cd /usr/local/app/tars
@@ -56,6 +54,7 @@ build_web_mgr(){
 	echo "web manager ...."
 	
 	##web管理系统配置修改后重新打war包
+	source /etc/profile
 	cd /usr/local/resin/webapps/
 	mkdir tars
 	cd tars
