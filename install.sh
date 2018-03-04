@@ -18,12 +18,9 @@ build_cpp_framework(){
 	cd /root/sql/
 	sed -i "s/proot@appinside/h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} /g" `grep proot@appinside -rl ./exec-sql.sh`
 	
-	#RESULT=`mysqlshow -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} tars_property | grep -v Wildcard | grep -o tars_property`
-	#if [ $RESULT != "tars_property" ];
-	#then
-		chmod u+x /root/Tars/cpp/framework/sql/exec-sql.sh
-		/root/Tars/cpp/framework/sql/exec-sql.sh
-	#fi
+	chmod u+x /root/sql/exec-sql.sh
+	/root/sql/exec-sql.sh
+
 }
 
 install_base_services(){
@@ -32,10 +29,10 @@ install_base_services(){
 	cd /root
 	mv t*.tgz /data
 
-	#mkdir -p /data/tars/tarsconfig_data && ln -s /data/tars/tarsconfig_data /usr/local/app/tars/tarsconfig/data
-	#mkdir -p /data/tars/tarsnode_data && ln -s /data/tars/tarsnode_data /usr/local/app/tars/tarsnode/data
-	#mkdir -p /data/tars/tarspatch_data && ln -s /data/tars/tarspatch_data /usr/local/app/tars/tarspatch/data
-	#mkdir -p /data/tars/tarsregistry_data && ln -s /data/tars/tarsregistry_data /usr/local/app/tars/tarsregistry/data
+	# mkdir -p /data/tars/tarsconfig_data && ln -s /data/tars/tarsconfig_data /usr/local/app/tars/tarsconfig/data
+	# mkdir -p /data/tars/tarsnode_data && ln -s /data/tars/tarsnode_data /usr/local/app/tars/tarsnode/data
+	# mkdir -p /data/tars/tarspatch_data && ln -s /data/tars/tarspatch_data /usr/local/app/tars/tarspatch/data
+	# mkdir -p /data/tars/tarsregistry_data && ln -s /data/tars/tarsregistry_data /usr/local/app/tars/tarsregistry/data
 
 	##核心基础服务配置修改
 	cd /usr/local/app/tars
@@ -57,6 +54,7 @@ build_web_mgr(){
 	echo "web manager ...."
 	
 	##web管理系统配置修改后重新打war包
+	source /etc/profile
 	cd /usr/local/resin/webapps/
 	mkdir tars
 	cd tars
@@ -73,26 +71,9 @@ build_web_mgr(){
 	rm -rf tars
 }
 
-start_redis() {
-	sed -i "s/daemonize no/daemonize yes/g" /etc/redis.conf
-	redis-server /etc/redis.conf
-}
-
-start_apache() {
-	mkdir /data/web
-	echo "<?php phpinfo(); ?>" > /data/web/phpinfo.php
-	rm -rf /var/www/html
-	rm -f /etc/httpd/conf.d/welcome.conf
-	ln -s /data/web /var/www/html
-	httpd
-}
 
 build_cpp_framework
 
 install_base_services
 
 build_web_mgr
-
-start_redis
-
-start_apache
