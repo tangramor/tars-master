@@ -55,7 +55,7 @@ ENV MAVEN_HOME /usr/local/apache-maven-3.5.2
 VOLUME ["/data"]
 	
 ##拷贝资源
-COPY tars-master/install.sh /root/init/
+COPY install.sh /root/init/
 COPY entrypoint.sh /sbin/
 
 ENTRYPOINT ["/bin/bash","/sbin/entrypoint.sh"]
