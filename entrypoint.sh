@@ -17,10 +17,10 @@ case ${1} in
 	init)
 		;;
 	start)
+		/usr/sbin/init
 		source /etc/profile
 		/usr/local/app/tars/tars_install.sh
-		/etc/init.d/redis-server start
-		/etc/init.d/apache2 start
+		httpd
 		exec /usr/local/resin/bin/resin.sh console
 		;;
 	*)
