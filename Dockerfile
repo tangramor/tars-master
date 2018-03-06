@@ -14,9 +14,6 @@ ENV DBPort 3306
 ENV DBUser root
 ENV DBPassword password
 
-# 是否将Tars系统进程的data目录挂载到外部存储，缺省为false以支持windows下使用
-ENV MOUNT_DATA false
-
 ##安装
 RUN yum install -y git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iproute which glibc-devel flex bison ncurses-devel zlib-devel kde-l10n-Chinese glibc-common \
 	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/master.zip -O master.zip \
@@ -59,6 +56,9 @@ RUN yum install -y git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iprou
 ENV JAVA_HOME /usr/java/jdk1.8.0_131
 
 ENV MAVEN_HOME /usr/local/apache-maven-3.5.2
+
+# 是否将Tars系统进程的data目录挂载到外部存储，缺省为false以支持windows下使用
+ENV MOUNT_DATA false
 
 VOLUME ["/data"]
 
