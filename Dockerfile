@@ -8,10 +8,14 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
 	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
 
 ENV LC_ALL zh_CN.utf8
+
 ENV DBIP 127.0.0.1
 ENV DBPort 3306
 ENV DBUser root
 ENV DBPassword password
+
+# 是否将Tars系统进程的data目录挂载到外部存储，缺省为false以支持windows下使用
+ENV MOUNT_DATA false
 
 ##安装
 RUN yum install -y git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iproute which glibc-devel flex bison ncurses-devel zlib-devel kde-l10n-Chinese glibc-common \
