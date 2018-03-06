@@ -19,7 +19,7 @@ case ${1} in
 	start)
 		/usr/sbin/init
 		source /etc/profile
-		/usr/local/app/tars/tars_install.sh
+		cd /usr/local/app/tars && ./tars_install.sh
 		redis-server /etc/redis.conf
 		httpd
 		exec /usr/local/resin/bin/resin.sh console
