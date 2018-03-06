@@ -33,7 +33,7 @@ docker pull tangramor/tars-master
 docker pull tangramor/tars-node
 ```
 
-在运行容器时需要指定数据库的环境变量，例如：
+在运行容器时需要指定数据库的**环境变量**，例如：
 ```
 DBIP mysql
 DBPort 3306
@@ -41,9 +41,12 @@ DBUser root
 DBPassword password
 ```
 
+如果是在**Linux**或者**Mac**上运行，可以设定**环境变量** `MOUNT_DATA` 为 `true` 。此选项用于将Tars的系统进程的数据目录挂载到 /data 目录之下（一般把外部存储卷挂载为 /data 目录），这样即使重新创建容器，只要环境变量一致（数据库也没变化），那么之前的部署就不会丢失。这符合容器是无状态的原则。可惜在Windows下由于文件系统与虚拟机共享文件夹的权限问题，我们不能使用这个选项。
+
+
 run_docker_tars.sh 里的命令如下，请自己修改：
 ```
-docker run -d -it --name tars --link mysql --env DBIP=mysql --env DBPort=3306 --env DBUser=root --env DBPassword=PASS -p 8080:8080 -v /c/Users/<ACCOUNT>/tars_data:/data tangramor/docker-tars
+docker run -d -it --name tars --link mysql --env MOUNT_DATA=false --env DBIP=mysql --env DBPort=3306 --env DBUser=root --env DBPassword=PASS -p 8080:8080 -v /c/Users/<ACCOUNT>/tars_data:/data tangramor/docker-tars
 ```
 
 
