@@ -45,7 +45,7 @@ install_base_services(){
 	sed -i "s/web.tars.com/${MachineIp}/g" `grep web.tars.com -rl ./*`
 
 	chmod u+x tars_install.sh
-	./tars_install.sh
+	#./tars_install.sh
 
 	./tarspatch/util/init.sh
 }
