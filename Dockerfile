@@ -23,6 +23,7 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	&& cd /root/Tars/cpp/thirdparty && wget -c -t 0 https://github.com/Tencent/rapidjson/archive/master.zip -O master.zip \
 	&& unzip -a master.zip && mv rapidjson-master rapidjson && rm -f master.zip \
 	&& mkdir -p /data && chmod u+x /root/Tars/cpp/build/build.sh \
+	&& cd /root/Tars/cpp/framework && sed -i '11s/rt/rt crypto/' CMakeLists.txt \
 	&& cd /root/Tars/cpp/build/ && ./build.sh all \
 	&& ./build.sh install \
 	&& cd /root/Tars/cpp/build/ && make framework-tar \
