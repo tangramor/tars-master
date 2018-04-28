@@ -25,7 +25,7 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	&& unzip -a master.zip && mv rapidjson-master rapidjson && rm -f master.zip \
 	&& mkdir -p /data && chmod u+x /root/Tars/cpp/build/build.sh \
 	# 以下对源码配置进行mysql8对应的修改
-	&& cd /root/Tars/cpp/framework && sed -i '11s/rt/rt crypto ssl/' /root/Tars/cpp/framework/CMakeLists.txt && sed -i '20s/5.1.14/8.0.11/' /root/Tars/web/pom.xml \
+	&& sed -i '11s/rt/rt crypto ssl/' /root/Tars/cpp/framework/CMakeLists.txt && sed -i '20s/5.1.14/8.0.11/' /root/Tars/web/pom.xml \
 	&& sed -i '25s/org.gjt.mm.mysql.Driver/com.mysql.cj.jdbc.Driver/' /root/Tars/web/src/main/resources/conf-spring/spring-context-datasource.xml \
 	&& sed -i '26s/convertToNull/CONVERT_TO_NULL/' /root/Tars/web/src/main/resources/conf-spring/spring-context-datasource.xml \
 	# 开始构建
