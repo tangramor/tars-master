@@ -8,15 +8,24 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
 	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
 
 ENV LC_ALL zh_CN.utf8
-
 ENV DBIP 127.0.0.1
 ENV DBPort 3306
 ENV DBUser root
 ENV DBPassword password
 
 ##安装
-RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm \
-	&& yum --enablerepo=mysql80-community install -y git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iproute which glibc-devel flex bison ncurses-devel zlib-devel kde-l10n-Chinese glibc-common \
+RUN yum -y install https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm \
+	&& yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+	&& yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm \
+	&& yum -y install yum-utils && yum-config-manager --enable remi-php72 \
+	&& yum --enablerepo=mysql80-community -y install git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iproute which glibc-devel flex bison ncurses-devel zlib-devel kde-l10n-Chinese glibc-common hiredis-devel rapidjson-devel boost boost-devel redis php php-cli php-devel php-mcrypt php-gd php-curl php-mysql php-zip php-fileinfo php-phpiredis \
+	# 安装Mysql8 C++ Connector
+	# && yum -y install https://dev.mysql.com/get/Downloads/Connector-C++/mysql-connector-c++-1.1.9-linux-el7-x86-64bit.rpm \
+	&& wget -c -t 0 https://dev.mysql.com/get/Downloads/Connector-C++/mysql-connector-c++-8.0.11-linux-el7-x86-64bit.tar.gz \
+	&& tar zxf mysql-connector-c++-8.0.11-linux-el7-x86-64bit.tar.gz && cd mysql-connector-c++-8.0.11-linux-el7-x86-64bit \
+	&& cp -Rf include/jdbc/* /usr/include/mysql/ && cp -Rf include/mysqlx/* /usr/include/mysql/ && cp -Rf lib64/* /usr/lib64/mysql/ \
+	&& cd /root && rm -rf mysql-connector* \
+	# 获取最新TARS源码
 	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/master.zip -O master.zip \
 	&& unzip -a master.zip && mv Tars-master Tars && rm -f /root/master.zip \
 	&& mkdir -p /usr/local/mysql && ln -s /usr/lib64/mysql /usr/local/mysql/lib && ln -s /usr/include/mysql /usr/local/mysql/include && echo "/usr/local/mysql/lib/" >> /etc/ld.so.conf && ldconfig \
@@ -25,7 +34,7 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	&& unzip -a master.zip && mv rapidjson-master rapidjson && rm -f master.zip \
 	&& mkdir -p /data && chmod u+x /root/Tars/cpp/build/build.sh \
 	# 以下对源码配置进行mysql8对应的修改
-	&& cd /root/Tars/cpp/framework && sed -i '11s/rt/rt crypto ssl/' /root/Tars/cpp/framework/CMakeLists.txt && sed -i '20s/5.1.14/8.0.11/' /root/Tars/web/pom.xml \
+	&& sed -i '11s/rt/rt crypto ssl/' /root/Tars/cpp/framework/CMakeLists.txt && sed -i '20s/5.1.14/8.0.11/' /root/Tars/web/pom.xml \
 	&& sed -i '25s/org.gjt.mm.mysql.Driver/com.mysql.cj.jdbc.Driver/' /root/Tars/web/src/main/resources/conf-spring/spring-context-datasource.xml \
 	&& sed -i '26s/convertToNull/CONVERT_TO_NULL/' /root/Tars/web/src/main/resources/conf-spring/spring-context-datasource.xml \
 	# 开始构建
@@ -33,9 +42,14 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	&& ./build.sh install \
 	&& cd /root/Tars/cpp/build/ && make framework-tar \
 	&& make tarsstat-tar && make tarsnotify-tar && make tarsproperty-tar && make tarslog-tar && make tarsquerystat-tar && make tarsqueryproperty-tar \
-	&& mkdir -p /usr/local/app/tars/ && cp /root/Tars/cpp/build/framework.tgz /usr/local/app/tars/  && cp /root/Tars/cpp/build/t*.tgz /root/ \
+	&& mkdir -p /usr/local/app/tars/ && cp /root/Tars/cpp/build/framework.tgz /usr/local/app/tars/ && cp /root/Tars/cpp/build/t*.tgz /root/ \
 	&& cd /usr/local/app/tars/ && tar xzfv framework.tgz && rm -rf framework.tgz \
 	&& mkdir -p /usr/local/app/patchs/tars.upload \
+	&& cd /tmp && curl -fsSL https://getcomposer.org/installer | php \
+	&& chmod +x composer.phar && mv composer.phar /usr/local/bin/composer \
+	&& cd /root/Tars/php/tarsclient/ext/ && phpize --clean && phpize \
+	&& ./configure --enable-phptars --with-php-config=/usr/bin/php-config && make && make install \
+	&& echo "extension=phptars.so" > /etc/php.d/phptars.ini \
 	&& mkdir -p /root/init && cd /root/init/ \
 	&& wget -c -t 0 --header "Cookie: oraclelicense=accept" -c --no-check-certificate http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm \
 	&& rpm -ivh /root/init/jdk-8u131-linux-x64.rpm && rm -rf /root/init/jdk-8u131-linux-x64.rpm \
@@ -54,7 +68,6 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	&& cp /root/Tars/web/target/tars.war /usr/local/resin/webapps/ \
 	&& mkdir -p /root/sql && cp -rf /root/Tars/cpp/framework/sql/* /root/sql/ \
 	&& rm -rf /root/Tars \
-	&& yum -y remove git gcc gcc-c++ make cmake mysql-devel glibc-devel ncurses-devel zlib-devel glibc-headers kernel-headers keyutils-libs-devel krb5-devel libcom_err-devel libselinux-devel libsepol-devel libstdc++-devel libverto-devel openssl-devel pcre-devel autoconf automake \
 	&& yum clean all && rm -rf /var/cache/yum
 	
 ENV JAVA_HOME /usr/java/jdk1.8.0_131
@@ -70,7 +83,7 @@ ENV INET_NAME eth0
 VOLUME ["/data"]
 
 ##拷贝资源
-COPY install.sh /root/init/
+COPY tars-master/install.sh /root/init/
 COPY entrypoint.sh /sbin/
 
 ENTRYPOINT ["/bin/bash","/sbin/entrypoint.sh"]
@@ -79,3 +92,4 @@ CMD ["start"]
 
 #Expose ports
 EXPOSE 8080
+EXPOSE 80

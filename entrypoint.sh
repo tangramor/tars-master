@@ -17,8 +17,11 @@ case ${1} in
 	init)
 		;;
 	start)
+		/usr/sbin/init
 		source /etc/profile
 		cd /usr/local/app/tars && ./tars_install.sh
+		redis-server /etc/redis.conf
+		httpd
 		exec /usr/local/resin/bin/resin.sh console
 		;;
 	*)

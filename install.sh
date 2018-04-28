@@ -6,16 +6,12 @@ MachineName=$(cat /etc/hosts | grep ${MachineIp} | awk '{print $2}')
 build_cpp_framework(){
 	echo "build cpp framework ...."
 	##Tars数据库环境初始化
-	# mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "grant all on *.* to 'tars'@'%' identified by 'tars2015' with grant option;"
-	# mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "grant all on *.* to 'tars'@'localhost' identified by 'tars2015' with grant option;"
-	# mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "grant all on *.* to 'tars'@'${MachineName}' identified by 'tars2015' with grant option;"
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "CREATE USER 'tars'@'%' IDENTIFIED BY 'tars2015';"
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "GRANT ALL ON *.* TO 'tars'@'%' WITH GRANT OPTION;"
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "CREATE USER 'tars'@'localhost' IDENTIFIED BY 'tars2015';"
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "GRANT ALL ON *.* TO 'tars'@'localhost' WITH GRANT OPTION;"
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "CREATE USER 'tars'@'${MachineName}' IDENTIFIED BY 'tars2015';"
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "GRANT ALL ON *.* TO 'tars'@'${MachineName}' WITH GRANT OPTION;"
-	
 	mysql -h${DBIP} -P${DBPort} -u${DBUser} -p${DBPassword} -e "flush privileges;"
 
 	sed -i "s/192.168.2.131/${MachineIp}/g" `grep 192.168.2.131 -rl /root/sql/*`
@@ -38,8 +34,13 @@ build_cpp_framework(){
 install_base_services(){
 	echo "base services ...."
 	
-	cd /root/
+	cd /root
 	mv t*.tgz /data
+
+	#mkdir -p /data/tars/tarsconfig_data && ln -s /data/tars/tarsconfig_data /usr/local/app/tars/tarsconfig/data
+	#mkdir -p /data/tars/tarsnode_data && ln -s /data/tars/tarsnode_data /usr/local/app/tars/tarsnode/data
+	#mkdir -p /data/tars/tarspatch_data && ln -s /data/tars/tarspatch_data /usr/local/app/tars/tarspatch/data
+	#mkdir -p /data/tars/tarsregistry_data && ln -s /data/tars/tarsregistry_data /usr/local/app/tars/tarsregistry/data
 
 	##核心基础服务配置修改
 	cd /usr/local/app/tars
@@ -86,9 +87,26 @@ build_web_mgr(){
 	rm -rf tars
 }
 
+start_redis() {
+	sed -i "s/daemonize no/daemonize yes/g" /etc/redis.conf
+	redis-server /etc/redis.conf
+}
+
+start_apache() {
+	mkdir /data/web
+	echo "<?php phpinfo(); ?>" > /data/web/phpinfo.php
+	rm -rf /var/www/html
+	rm -f /etc/httpd/conf.d/welcome.conf
+	ln -s /data/web /var/www/html
+	httpd
+}
 
 build_cpp_framework
 
 install_base_services
 
 build_web_mgr
+
+start_redis
+
+start_apache
