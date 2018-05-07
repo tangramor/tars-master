@@ -51,7 +51,13 @@ DBPassword password
 
 
 ### INET_NAME
+
 如果想要把docker内部服务直接暴露到宿主机，可以在运行docker时使用 `--net=host` 选项（docker缺省使用的是bridge桥接模式），这时我们需要确定宿主机的网卡名称，如果不是 `eth0`，那么需要设定**环境变量** `INET_NAME` 的值为宿主机网卡名称，例如 `--env INET_NAME=ens160`。这种方式启动docker容器后，可以在宿主机使用 `netstat -anop |grep '8080\|10000\|10001' |grep LISTEN` 来查看端口是否被成功监听。
+
+
+### DBTarsPass
+
+Tars缺省的会在mysql数据库创建tars用户，其缺省密码也是固定的tars2015。为了安全起见，可以设定**环境变量** `DBTarsPass` 的值为其它值。
 
 
 run_docker_tars.sh 里的命令如下，请自己修改：
