@@ -56,17 +56,20 @@ RUN yum -y install https://repo.mysql.com/mysql57-community-release-el7-11.noarc
 	&& ./configure --enable-phptars --with-php-config=/usr/bin/php-config && make && make install \
 	&& echo "extension=phptars.so" > /etc/php.d/phptars.ini \
 	&& mkdir -p /root/init && cd /root/init/ \
-	&& wget -c -t 0 --header "Cookie: oraclelicense=accept" -c --no-check-certificate http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm \
-	&& rpm -ivh /root/init/jdk-8u131-linux-x64.rpm && rm -rf /root/init/jdk-8u131-linux-x64.rpm \
-	&& echo "export JAVA_HOME=/usr/java/jdk1.8.0_131" >> /etc/profile \
+	# 获取并安装JDK
+	&& wget -c -t 0 --header "Cookie: oraclelicense=accept" -c --no-check-certificate http://download.oracle.com/otn-pub/java/jdk/10.0.1+10/fb4372174a714e6b8c52526dc134031e/jdk-10.0.1_linux-x64_bin.rpm \
+	&& rpm -ivh /root/init/jdk-10.0.1_linux-x64_bin.rpm && rm -rf /root/init/jdk-10.0.1_linux-x64_bin.rpm \
+	&& echo "export JAVA_HOME=/usr/java/jdk-10.0.1" >> /etc/profile \
 	&& echo "CLASSPATH=\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> /etc/profile \
 	&& echo "PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile \
 	&& echo "export PATH JAVA_HOME CLASSPATH" >> /etc/profile \
-	&& cd /usr/local/ && wget -c -t 0 http://mirrors.gigenet.com/apache/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz \
-	&& tar zxvf apache-maven-3.5.2-bin.tar.gz && echo "export MAVEN_HOME=/usr/local/apache-maven-3.5.2/" >> /etc/profile \
+	&& cd /usr/local/ && wget -c -t 0 http://mirrors.gigenet.com/apache/maven/maven-3/3.5.3/binaries/apache-maven-3.5.3-bin.tar.gz \
+	&& tar zxvf apache-maven-3.5.3-bin.tar.gz && echo "export MAVEN_HOME=/usr/local/apache-maven-3.5.3/" >> /etc/profile \
+	# 设置阿里云maven镜像
+	&& sed -i '/<mirrors>/a\\t<mirror>\n\t\t<id>nexus-aliyun<\/id>\n\t\t<mirrorOf>*<\/mirrorOf>\n\t\t<name>Nexus aliyun<\/name>\n\t\t<url>http:\/\/maven.aliyun.com\/nexus\/content\/groups\/public<\/url>\n\t<\/mirror>' /usr/local/apache-maven-3.5.3/conf/settings.xml \
 	&& echo "export PATH=\$PATH:\$MAVEN_HOME/bin" >> /etc/profile && source /etc/profile && mvn -v \
-	&& rm -rf apache-maven-3.5.2-bin.tar.gz  \
-	&& cd /usr/local/ && wget -c -t 0 http://caucho.com/download/resin-4.0.51.tar.gz && tar zxvf resin-4.0.51.tar.gz && mv resin-4.0.51 resin && rm -rf resin-4.0.51.tar.gz \
+	&& rm -rf apache-maven-3.5.3-bin.tar.gz  \
+	&& cd /usr/local/ && wget -c -t 0 http://caucho.com/download/resin-4.0.56.tar.gz && tar zxvf resin-4.0.56.tar.gz && mv resin-4.0.56 resin && rm -rf resin-4.0.56.tar.gz \
 	&& source /etc/profile && cd /root/Tars/java && mvn clean install && mvn clean install -f core/client.pom.xml && mvn clean install -f core/server.pom.xml \
 	&& cd /root/Tars/web/ && source /etc/profile && mvn clean package \
 	&& cp /root/Tars/build/conf/resin.xml /usr/local/resin/conf/ \
@@ -75,9 +78,9 @@ RUN yum -y install https://repo.mysql.com/mysql57-community-release-el7-11.noarc
 	&& rm -rf /root/Tars \
 	&& yum clean all && rm -rf /var/cache/yum
 	
-ENV JAVA_HOME /usr/java/jdk1.8.0_131
+ENV JAVA_HOME /usr/java/jdk-10.0.1
 
-ENV MAVEN_HOME /usr/local/apache-maven-3.5.2
+ENV MAVEN_HOME /usr/local/apache-maven-3.5.3
 
 # 是否将Tars系统进程的data目录挂载到外部存储，缺省为false以支持windows下使用
 ENV MOUNT_DATA false
@@ -88,7 +91,7 @@ ENV INET_NAME eth0
 VOLUME ["/data"]
 
 ##拷贝资源
-COPY install.sh /root/init/
+COPY tars-master/install.sh /root/init/
 COPY entrypoint.sh /sbin/
 
 ENTRYPOINT ["/bin/bash","/sbin/entrypoint.sh"]
