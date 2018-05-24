@@ -21,8 +21,9 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
 	&& yum -y install https://dev.mysql.com/get/Downloads/Connector-C++/mysql-connector-c++-1.1.9-linux-el7-x86-64bit.rpm \
 	&& ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
 	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8 \
-	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/master.zip -O master.zip \
-	&& unzip -a master.zip && mv Tars-master Tars && rm -f /root/master.zip \
+	# 获取最新TARS源码(phptars分支)
+	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/phptars.zip -O phptars.zip \
+	&& unzip -a phptars.zip && mv Tars-phptars Tars && rm -f /root/phptars.zip \
 	&& mkdir -p /usr/local/mysql && ln -s /usr/lib64/mysql /usr/local/mysql/lib && ln -s /usr/include/mysql /usr/local/mysql/include && echo "/usr/local/mysql/lib/" >> /etc/ld.so.conf && ldconfig \
 	&& cd /usr/local/mysql/lib/ && ln -s libmysqlclient.so.*.*.* libmysqlclient.a \
 	&& cd /root/Tars/cpp/thirdparty && wget -c -t 0 https://github.com/Tencent/rapidjson/archive/master.zip -O master.zip \
@@ -37,9 +38,15 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
 	&& mkdir -p /usr/local/app/patchs/tars.upload \
 	&& cd /tmp && curl -fsSL https://getcomposer.org/installer | php \
 	&& chmod +x composer.phar && mv composer.phar /usr/local/bin/composer \
-	&& cd /root/Tars/php/tarsclient/ext/ && phpize --clean && phpize \
+	&& cd /root/Tars/php/tars-extension/ && phpize --clean && phpize \
 	&& ./configure --enable-phptars --with-php-config=/usr/bin/php-config && make && make install \
 	&& echo "extension=phptars.so" > /etc/php.d/phptars.ini \
+	# 安装PHP swoole模块
+	&& cd /root && wget -c -t 0 https://github.com/swoole/swoole-src/archive/v2.1.3.tar.gz \
+	&& tar zxf v2.1.3.tar.gz && cd swoole-src-2.1.3 && phpize && ./configure && make && make install \
+	&& echo "extension=swoole.so" > /etc/php.d/swoole.ini \
+	&& cd /root && rm -rf v2.1.3.tar.gz swoole-src-2.1.3 \
+	&& mkdir -p /root/phptars && cp -f /root/Tars/php/tars2php/src/tars2php.php /root/phptars \
 	&& mkdir -p /root/init && cd /root/init/ \
 	&& wget -c -t 0 --header "Cookie: oraclelicense=accept" -c --no-check-certificate http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm \
 	&& rpm -ivh /root/init/jdk-8u131-linux-x64.rpm && rm -rf /root/init/jdk-8u131-linux-x64.rpm \
