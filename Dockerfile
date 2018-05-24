@@ -4,10 +4,7 @@ WORKDIR /root/
 
 ##修改镜像时区 
 ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
-	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
 
-ENV LC_ALL zh_CN.utf8
 ENV DBIP 127.0.0.1
 ENV DBPort 3306
 ENV DBUser root
@@ -22,15 +19,16 @@ RUN yum -y install https://repo.mysql.com/mysql57-community-release-el7-11.noarc
 	&& yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm \
 	&& yum -y install yum-utils && yum-config-manager --enable remi-php72 \
 	&& yum --enablerepo=mysql80-community -y install git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iproute which glibc-devel flex bison ncurses-devel zlib-devel kde-l10n-Chinese glibc-common hiredis-devel rapidjson-devel boost boost-devel redis php php-cli php-devel php-mcrypt php-gd php-curl php-mysql php-zip php-fileinfo php-phpiredis \
+	&& ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8 \
 	# 安装Mysql8 C++ Connector
-	# && yum -y install https://dev.mysql.com/get/Downloads/Connector-C++/mysql-connector-c++-1.1.9-linux-el7-x86-64bit.rpm \
 	&& wget -c -t 0 https://dev.mysql.com/get/Downloads/Connector-C++/mysql-connector-c++-8.0.11-linux-el7-x86-64bit.tar.gz \
 	&& tar zxf mysql-connector-c++-8.0.11-linux-el7-x86-64bit.tar.gz && cd mysql-connector-c++-8.0.11-linux-el7-x86-64bit \
 	&& cp -Rf include/jdbc/* /usr/include/mysql/ && cp -Rf include/mysqlx/* /usr/include/mysql/ && cp -Rf lib64/* /usr/lib64/mysql/ \
 	&& cd /root && rm -rf mysql-connector* \
-	# 获取最新TARS源码
-	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/master.zip -O master.zip \
-	&& unzip -a master.zip && mv Tars-master Tars && rm -f /root/master.zip \
+	# 获取最新TARS源码(phptars分支)
+	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/phptars.zip -O phptars.zip \
+	&& unzip -a phptars.zip && mv Tars-phptars Tars && rm -f /root/phptars.zip \
 	&& mkdir -p /usr/local/mysql && ln -s /usr/lib64/mysql /usr/local/mysql/lib && ln -s /usr/include/mysql /usr/local/mysql/include && echo "/usr/local/mysql/lib/" >> /etc/ld.so.conf && ldconfig \
 	&& cd /usr/local/mysql/lib/ && rm -f libmysqlclient.a && ln -s libmysqlclient.so.*.*.* libmysqlclient.a \
 	&& cd /root/Tars/cpp/thirdparty && wget -c -t 0 https://github.com/Tencent/rapidjson/archive/master.zip -O master.zip \
@@ -55,8 +53,14 @@ RUN yum -y install https://repo.mysql.com/mysql57-community-release-el7-11.noarc
 	&& cd /root/Tars/php/tarsclient/ext/ && phpize --clean && phpize \
 	&& ./configure --enable-phptars --with-php-config=/usr/bin/php-config && make && make install \
 	&& echo "extension=phptars.so" > /etc/php.d/phptars.ini \
-	&& mkdir -p /root/init && cd /root/init/ \
+	# 安装PHP swoole模块
+	&& cd /root && wget -c -t 0 https://github.com/swoole/swoole-src/archive/v2.1.3.tar.gz \
+	&& tar zxf v2.1.3.tar.gz && cd swoole-src-2.1.3 && phpize && ./configure && make && make install \
+	&& echo "extension=swoole.so" > /etc/php.d/swoole.ini \
+	&& cd /root && rm -rf v2.1.3.tar.gz swoole-src-2.1.3 \
+	&& mkdir -p /root/phptars && cp -f /root/Tars/php/tars2php/src/tars2php.php /root/phptars \
 	# 获取并安装JDK
+	&& mkdir -p /root/init && cd /root/init/ \
 	&& wget -c -t 0 --header "Cookie: oraclelicense=accept" -c --no-check-certificate http://download.oracle.com/otn-pub/java/jdk/10.0.1+10/fb4372174a714e6b8c52526dc134031e/jdk-10.0.1_linux-x64_bin.rpm \
 	&& rpm -ivh /root/init/jdk-10.0.1_linux-x64_bin.rpm && rm -rf /root/init/jdk-10.0.1_linux-x64_bin.rpm \
 	&& echo "export JAVA_HOME=/usr/java/jdk-10.0.1" >> /etc/profile \
