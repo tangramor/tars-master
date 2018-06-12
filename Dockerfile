@@ -4,10 +4,6 @@ WORKDIR /root/
 
 ##修改镜像时区 
 ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
-	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
-
-ENV LC_ALL zh_CN.utf8
 
 ENV DBIP 127.0.0.1
 ENV DBPort 3306
@@ -20,6 +16,8 @@ ENV DBTarsPass tars2015
 ##安装
 RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm \
 	&& yum --enablerepo=mysql80-community install -y git gcc gcc-c++ make wget cmake mysql mysql-devel unzip iproute which glibc-devel flex bison ncurses-devel zlib-devel kde-l10n-Chinese glibc-common \
+	&& ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+	&& localedef -c -f UTF-8 -i zh_CN zh_CN.utf8 \
 	&& wget -c -t 0 https://github.com/Tencent/Tars/archive/master.zip -O master.zip \
 	&& unzip -a master.zip && mv Tars-master Tars && rm -f /root/master.zip \
 	&& mkdir -p /usr/local/mysql && ln -s /usr/lib64/mysql /usr/local/mysql/lib && ln -s /usr/include/mysql /usr/local/mysql/include && echo "/usr/local/mysql/lib/" >> /etc/ld.so.conf && ldconfig \
@@ -76,6 +74,9 @@ ENV MOUNT_DATA false
 
 # 网络接口名称，如果运行时使用 --net=host，宿主机网卡接口可能不叫 eth0
 ENV INET_NAME eth0
+
+# 中文字符集支持
+ENV LC_ALL "zh_CN.UTF-8"
 
 VOLUME ["/data"]
 
