@@ -1,11 +1,15 @@
 # Tencent Tars 的Docker镜像脚本与使用
 
+![Docker Pulls](https://img.shields.io/docker/pulls/tangramor/docker-tars.svg) ![Docker Automated build](https://img.shields.io/docker/automated/tangramor/docker-tars.svg) ![Docker Build Status](https://img.shields.io/docker/build/tangramor/docker-tars.svg)
+
 ## [Click to Read English Version](https://github.com/tangramor/docker-tars/blob/master/docs/README_en.md)
 
+* [约定](#约定)
 * [MySQL](#mysql)
 * [镜像](#镜像)
   * [注意：](#注意)
 * [环境变量](#环境变量)
+  * [TZ](#tz)
   * [DBIP, DBPort, DBUser, DBPassword](#dbip-dbport-dbuser-dbpassword)
   * [DBTarsPass](#dbtarspass)
   * [MOUNT_DATA](#mount_data)
@@ -18,10 +22,17 @@
 * [Trouble Shooting](#trouble-shooting)
 * [感谢](#感谢)
 
+
+约定
+-----
+
+本文档假定你的工作环境为**Windows**，因为Windows下的docker命令行环境会把C:盘、D:盘等盘符映射为 `/c/`、`/d/` 这样的目录形式，所以在文档中会直接使用 `/c/Users/` 这样的写法来描述C:盘的用户目录。
+
+
 MySQL
 -----
 
-本镜像是Tars的docker版本，未安装mysql，可以使用官方mysql镜像（5.6）：
+本镜像是Tars的docker版本，**未安装mysql**，可以使用官方mysql镜像（5.6）：
 ```
 docker run --name mysql -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 -v /c/Users/<ACCOUNT>/mysql_data:/var/lib/mysql mysql:5.6 --innodb_use_native_aio=0
 ```
@@ -53,9 +64,14 @@ docker镜像已经由docker hub自动构建：https://hub.docker.com/r/tangramor
 docker pull tangramor/docker-tars
 ```
 
-tag 为 **php7** 的镜像包含了php7.2环境和phptars扩展，也添加了MySQL C++ connector以方便开发：
+tag 为 **php7** 的镜像支持PHP服务端开发，包含了php7.2环境和phptars扩展，也添加了MySQL C++ connector以方便开发：
 ```
 docker pull tangramor/docker-tars:php7
+```
+
+tag 为 **php7mysql8** 的镜像支持PHP服务端开发，包含php7.2、JDK 10以及mysql8相关的支持修改（对TARS配置做了修改）：
+```
+docker pull tangramor/docker-tars:php7mysql8
 ```
 
 tag 为 **minideb** 的镜像是使用名为 minideb 的精简版 debian 作为基础镜像的版本：
@@ -63,12 +79,12 @@ tag 为 **minideb** 的镜像是使用名为 minideb 的精简版 debian 作为�
 docker pull tangramor/docker-tars:minideb
 ```
 
-tag 为 **php7mysql8** 的镜像使用了 TARS 的 **[phptars](https://github.com/Tencent/Tars/tree/phptars)** 分支的代码，支持PHP服务端开发，包含php7.2、JDK 10以及mysql8相关的支持修改（对TARS配置做了修改）：
+tag 为 **php7deb** 的镜像是使用名为 minideb 的精简版 debian 作为基础镜像的版本，支持PHP服务端开发，包含了php7.2环境和phptars扩展：
 ```
-docker pull tangramor/docker-tars:php7mysql8
+docker pull tangramor/docker-tars:minideb
 ```
 
-**tars-master** 之下是在镜像中删除了Tars源码的脚本，使用下面命令即可获取：
+**tars-master** 之下是在镜像中删除了Tars源码的脚本，有跟 **docker-tars** 一致的tag，使用下面命令即可获取：
 ```
 docker pull tangramor/tars-master
 ```
@@ -85,6 +101,11 @@ docker pull tangramor/tars-node
 
 环境变量
 --------
+### TZ
+
+时区设置，缺省为 `Asia/Shanghai` 。
+
+
 ### DBIP, DBPort, DBUser, DBPassword
 
 在运行容器时需要指定数据库的**环境变量**，例如：
@@ -120,7 +141,7 @@ docker run -d -it --name tars --link mysql --env MOUNT_DATA=false --env DBIP=mys
 ```
 
 ### 框架普通基础服务
-另外安装脚本把构建成功的 tarslog.tgz、tarsnotify.tgz、tarsproperty.tgz、tarsqueryproperty.tgz、tarsquerystat.tgz 和 tarsstat.tgz 都放到了 `/c/Users/<ACCOUNT>/tars_data/` 目录之下，可以参考Tars官方文档的 [安装框架普通基础服务](https://github.com/Tencent/Tars/blob/master/Install.md#44-%E5%AE%89%E8%A3%85%E6%A1%86%E6%9E%B6%E6%99%AE%E9%80%9A%E5%9F%BA%E7%A1%80%E6%9C%8D%E5%8A%A1) 来安装这些服务。
+另外安装脚本把构建成功的 tarslog.tgz、tarsnotify.tgz、tarsproperty.tgz、tarsqueryproperty.tgz、tarsquerystat.tgz 和 tarsstat.tgz 都放到了 `/c/Users/<ACCOUNT>/tars_data/` 目录之下，镜像本身已经自动安装了这些服务。你也可以参考Tars官方文档的 [安装框架普通基础服务](https://github.com/Tencent/Tars/blob/master/Install.md#44-%E5%AE%89%E8%A3%85%E6%A1%86%E6%9E%B6%E6%99%AE%E9%80%9A%E5%9F%BA%E7%A1%80%E6%9C%8D%E5%8A%A1) 来了解这些服务。
 
 
 
@@ -129,9 +150,23 @@ docker run -d -it --name tars --link mysql --env MOUNT_DATA=false --env DBIP=mys
 
 镜像构建命令：`docker build -t tars .`
 
-tars-master 镜像构建命令：`docker build -t tars-master -f tars-master/Dockerfile .`
 
-tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfile .`
+[tars-master](https://github.com/tangramor/tars-master) 镜像构建，请检出 tars-master 项目后执行命令：
+
+```
+git clone https://github.com/tangramor/tars-master.git
+cd tars-master
+docker build -t tars-master -f Dockerfile .
+```
+
+
+[tars-node](https://github.com/tangramor/tars-node) 镜像构建，请检出 tars-node 项目后执行命令：
+
+```
+git clone https://github.com/tangramor/tars-node.git
+cd tars-node
+docker build -t tars-node -f Dockerfile .
+```
 
 
 开发方式
@@ -139,7 +174,7 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
 使用docker镜像进行Tars相关的开发就方便很多了，我的做法是把项目放置在被挂载到镜像 /data 目录的本地目录下，例如 `/c/Users/<ACCOUNT>/tars_data` 。在本地使用编辑器或IDE对项目文件进行开发，然后开启命令行：`docker exec -it tars bash` 进入Tars环境进行编译或测试。
 
 ### 举例说明：
-    
+
 1. **开发C++服务端**
 
   首先使用docker命令启动容器，这里我们可以用 `tangramor/tars-master`  或者 `tangramor/docker-tars`：
@@ -148,7 +183,7 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   ```
   这个命令启动了 `tangramor/tars-master` 容器 **tars** 并将本地的一个目录 `/c/Users/tangramor/Workspace/tars_data` 挂载为容器的 /data 目录，同时它还把 8080 端口暴露出来了。
   
-  然后我们可以在宿主机的 `/c/Users/tangramor/Workspace/tars_data` 目录下看到有两个子目录被创建出来了：log、tars，前者是resin的日志目录，后者里面是Tars各系统进程的日志目录。同时 `/c/Users/tangramor/Workspace/tars_data` 目录下还有各个需要手动部署的 Tars 子系统的部署 tgz 包，我们参考 [安装框架普通基础服务](https://github.com/Tencent/Tars/blob/master/Install.md#44-%E5%AE%89%E8%A3%85%E6%A1%86%E6%9E%B6%E6%99%AE%E9%80%9A%E5%9F%BA%E7%A1%80%E6%9C%8D%E5%8A%A1) 来安装这些服务。
+  然后我们可以在宿主机的 `/c/Users/tangramor/Workspace/tars_data` 目录下看到有两个子目录被创建出来了：log、tars，前者是resin的日志目录，后者里面是Tars各系统进程的日志目录。同时 `/c/Users/tangramor/Workspace/tars_data` 目录下还有各个 Tars 子系统的部署 tgz 包，这些服务已经在镜像里自动安装完毕。
   
   运行 `docker exec -it tars bash` 进入容器 **tars**，`cd /data` 进入工作目录，参考官方的 [服务开发](https://github.com/Tencent/Tars/blob/master/docs/tars_cpp_quickstart.md#5-%E6%9C%8D%E5%8A%A1%E5%BC%80%E5%8F%91--) 文档，开发 TestApp.HelloServer，其中 testHello 方法修改如下：
   
@@ -173,7 +208,7 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   首先使用docker命令启动**php7**标签的容器，这里我们可以用 `tangramor/tars-node:php7` ：
   
   ```
-  docker run -d -it --name tars-node --link tars:tars -p 80:80 -v /c/Users/tangramor/Workspace/tars_node:/data tangramor/tars-node:php7
+  docker run -d -it --name tars-node --link tars:tars -e MASTER=tars -p 80:80 -v /c/Users/tangramor/Workspace/tars_node:/data tangramor/tars-node:php7
   ```
   
   这个命令启动了 `tangramor/tars-node:php7` 容器 **tars-node** 并将本地的一个目录 `/c/Users/tangramor/Workspace/tars_node` 挂载为容器的 /data 目录，同时它连接了命名为 **tars** 的服务端容器，还把 80 端口暴露出来了。
@@ -182,7 +217,25 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   
   我们从宿主机的 `/c/Users/tangramor/Workspace/tars_data/TestApp/HelloServer` 目录里找到 `Hello.tars` 文件，将它拷贝到宿主机的 `/c/Users/tangramor/Workspace/tars_node/web` 目录下。
   
-  运行 `docker exec -it tars-node bash` 进入容器 **tars-node**，`cd /data/web` 来到web目录，然后执行 `wget https://raw.githubusercontent.com/Tencent/Tars/master/php/tarsclient/tars2php.php` 把 `tars2php.php` 文件下载到本地。然后执行 `php tars2php.php Hello.tars "TestApp.HelloServer.HelloObj"` ，我们可以在 web 目录下看到 TestApp 目录被创建出来，`TestApp/HelloServer/HelloObj` 目录下是生成的PHP的客户端文件。
+  运行 `docker exec -it tars-node bash` 进入容器 **tars-node**，`cd /data/web` 来到web目录，创建一个名为 `tarsclient.proto.php` 的文件：
+
+  ```
+  <?php
+
+      return array(
+          'appName' => 'TestApp',
+          'serverName' => 'HelloServer',
+          'objName' => 'HelloObj',
+          'withServant' => false, //决定是服务端,还是客户端的自动生成
+          'tarsFiles' => array(
+              './Hello.tars'
+          ),
+          'dstPath' => './',
+          'namespacePrefix' => '',
+      );
+  ```
+
+  然后执行 `php /root/phptars/tars2php.php ./tarsclient.proto.php` ，我们可以在 web 目录下看到 TestApp 目录被创建出来，`TestApp/HelloServer/HelloObj` 目录下是生成的PHP的客户端类文件。
   
   在 web 目录下再创建一个 `composer.json` 文件，内容如下：
   
@@ -198,11 +251,17 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
     ],
     "require": {
       "php": ">=5.3",
-      "phptars/tars-assistant" : "0.2.1"
+      "phptars/tars-client" : "0.1.1"
     },
     "autoload": {
       "psr-4": {
         "TestApp\\": "TestApp/"
+      }
+    },
+    "repositories": {
+      "tars": {
+        "type": "composer",
+        "url": "https://raw.githubusercontent.com/Tencent/Tars/master/php/dist/tarsphp.json"
       }
     }
   }
@@ -213,15 +272,17 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   ```
   <?php
       require_once("./vendor/autoload.php");
+      
       // 指定主控
-      $host = "tars";
-      $port = 20001;
+      $config = new \Tars\client\CommunicatorConfig();
+      $config->setLocator("tars.tarsregistry.QueryObj@tcp -h 172.17.0.3 -p 17890");
+      $config->setModuleName("TestApp.HelloServer");
+      $config->setCharsetName("UTF-8");
+      $servant = new \TestApp\HelloServer\HelloObj\HelloServant($config);
   
       $start = microtime();
   
-      try {
-          $servant = new TestApp\HelloServer\HelloObj\Hello($host, $port);
-  
+      try {  
           $in1 = "Hello";
   
           $intVal = $servant->testHello($in1,$out1);
@@ -260,11 +321,11 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   
   我们进入 `/c/Users/tangramor/Workspace/tars_mysql8_data/web` 目录，在其下创建对应的目录结构： `scripts`、`src` 和 `tars`，
   
-  ![DevPHPTest1](docs/images/DevPHPTest1.png)
+  ![DevPHPTest1](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DevPHPTest1.png)
   
   运行 `docker exec -it tars_mysql8 bash` 进入容器 **tars_mysql8**，`cd /data/web` 进入工作目录。
   
-  在 `tars` 目录下创建一个 `test.tars` 文件（参考[phptars分支例子](https://github.com/Tencent/Tars/blob/phptars/php/examples/tars-tcp-server/tars/example.tars)）：
+  在 `tars` 目录下创建一个 `test.tars` 文件（参考[phptars例子](https://github.com/Tencent/Tars/blob/master/php/examples/tars-tcp-server/tars/example.tars)）：
   
   ```
   module testtafserviceservant
@@ -366,16 +427,16 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   * tars文件夹 - 存放tars文件
   * TestTafServiceServant.php - interface文件
   
-  ![DevPHPTest2](docs/images/DevPHPTest2.png)
+  ![DevPHPTest2](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DevPHPTest2.png)
   
   进入 `src` 目录，我们开始服务端代码的实现。因为使用的是官方例子，所以这里直接将例子的实现代码拷贝过来：
   
   ```
-  wget https://github.com/Tencent/Tars/raw/phptars/php/examples/tars-tcp-server/src/composer.json
-  wget https://github.com/Tencent/Tars/raw/phptars/php/examples/tars-tcp-server/src/index.php
-  wget https://github.com/Tencent/Tars/raw/phptars/php/examples/tars-tcp-server/src/services.php
-  mkdir impl && cd impl && wget https://github.com/Tencent/Tars/raw/phptars/php/examples/tars-tcp-server/src/impl/PHPServerServantImpl.php && cd ..
-  mkdir conf && cd conf && wget https://github.com/Tencent/Tars/raw/phptars/php/examples/tars-tcp-server/src/conf/ENVConf.php && cd ..
+  wget https://github.com/Tencent/Tars/raw/master/php/examples/tars-tcp-server/src/composer.json
+  wget https://github.com/Tencent/Tars/raw/master/php/examples/tars-tcp-server/src/index.php
+  wget https://github.com/Tencent/Tars/raw/master/php/examples/tars-tcp-server/src/services.php
+  mkdir impl && cd impl && wget https://github.com/Tencent/Tars/raw/master/php/examples/tars-tcp-server/src/impl/PHPServerServantImpl.php && cd ..
+  mkdir conf && cd conf && wget https://github.com/Tencent/Tars/raw/master/php/examples/tars-tcp-server/src/conf/ENVConf.php && cd ..
   ```
   
   - conf: 业务需要的配置，这里只是给出一个demo，如果从平台下发配置，默认也会写入到这个文件夹中；
@@ -386,20 +447,19 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   
   修改一下 `conf/ENVConf.php` 的配置信息。在 `src` 目录下运行 `composer install` 加载对应的依赖包，然后执行 `composer run-script deploy` 进行代码打包，一个名字类似 `PHPServer_20180523105340.tar.gz` 的包就打好了。
   
-  ![DevPHPTest3](docs/images/DevPHPTest3.png)
+  ![DevPHPTest3](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DevPHPTest3.png)
   
   在 `/data` 目录下创建一个 `logs` 目录，因为这个例子会在这下面写文件。
   
   将打好的包发布到Tars平台，记得选择php方式，模版使用 `tars.tarsphp.default` 或者自己根据需求新建一个模版：
   
-  ![DeployPHPTest1](docs/images/DeployPHPTest1.png)
+  ![DeployPHPTest1](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DeployPHPTest1.png)
   
-  ![DeployPHPTest2](docs/images/DeployPHPTest2.png)
+  ![DeployPHPTest2](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DeployPHPTest2.png)
   
   发布成功后，在系统里执行 `ps -ef` 会发现相关的进程。
   
-  ![DeployPHPTest3](docs/images/DeployPHPTest3.png)
-
+  ![DeployPHPTest3](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DeployPHPTest3.png)
 
 4. **开发PHP客户端**
 
@@ -447,7 +507,7 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
     ],
     "require": {
       "php": ">=5.3",
-      "phptars/tars-client" : "0.1.0"
+      "phptars/tars-client" : "0.1.1"
     },
     "autoload": {
       "psr-4": {
@@ -457,7 +517,7 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
     "repositories": {
       "tars": {
         "type": "composer",
-        "url": "https://raw.githubusercontent.com/Tencent/Tars/phptars/php/dist/tarsphp.json"
+        "url": "https://raw.githubusercontent.com/Tencent/Tars/master/php/dist/tarsphp.json"
       }
     }
   }
@@ -485,7 +545,7 @@ tars-node 镜像构建命令：`docker build -t tars-node -f tars-node/Dockerfil
   
   执行 `composer install` 命令加载对应的依赖包，然后运行 `php index.php` 来测试客户端，如果一切顺利，应该输出：`<p>hello world!</p>` 。我们使用浏览器来访问 http://192.168.99.100/client/index.php ，应该也能看到：
   
-  ![DevPHPTest4](docs/images/DevPHPTest4.png)
+  ![DevPHPTest4](https://raw.githubusercontent.com/tangramor/docker-tars/master/docs/images/DevPHPTest4.png)
   
   在 `/data/logs` 目录下查看 `ted.log`，应该有内容写入：`sayHelloWorld name:ted` 。
 

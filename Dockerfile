@@ -47,12 +47,12 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	&& echo "CLASSPATH=\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> /etc/profile \
 	&& echo "PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile \
 	&& echo "export PATH JAVA_HOME CLASSPATH" >> /etc/profile \
-	&& cd /usr/local/ && wget -c -t 0 https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.3/binaries/apache-maven-3.5.3-bin.tar.gz \
-	&& tar zxvf apache-maven-3.5.3-bin.tar.gz && echo "export MAVEN_HOME=/usr/local/apache-maven-3.5.3/" >> /etc/profile \
+	&& cd /usr/local/ && wget -c -t 0 http://mirror.bit.edu.cn/apache/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz \
+	&& tar zxvf apache-maven-3.5.4-bin.tar.gz && echo "export MAVEN_HOME=/usr/local/apache-maven-3.5.4/" >> /etc/profile \
 	# 设置阿里云maven镜像
-	# && sed -i '/<mirrors>/a\\t<mirror>\n\t\t<id>nexus-aliyun<\/id>\n\t\t<mirrorOf>*<\/mirrorOf>\n\t\t<name>Nexus aliyun<\/name>\n\t\t<url>http:\/\/maven.aliyun.com\/nexus\/content\/groups\/public<\/url>\n\t<\/mirror>' /usr/local/apache-maven-3.5.3/conf/settings.xml \
+	# && sed -i '/<mirrors>/a\\t<mirror>\n\t\t<id>nexus-aliyun<\/id>\n\t\t<mirrorOf>*<\/mirrorOf>\n\t\t<name>Nexus aliyun<\/name>\n\t\t<url>http:\/\/maven.aliyun.com\/nexus\/content\/groups\/public<\/url>\n\t<\/mirror>' /usr/local/apache-maven-3.5.4/conf/settings.xml \
 	&& echo "export PATH=\$PATH:\$MAVEN_HOME/bin" >> /etc/profile && source /etc/profile && mvn -v \
-	&& rm -rf apache-maven-3.5.3-bin.tar.gz  \
+	&& rm -rf apache-maven-3.5.4-bin.tar.gz  \
 	&& cd /usr/local/ && wget -c -t 0 http://caucho.com/download/resin-4.0.56.tar.gz && tar zxvf resin-4.0.56.tar.gz && mv resin-4.0.56 resin && rm -rf resin-4.0.56.tar.gz \
 	&& source /etc/profile && cd /root/Tars/java && mvn clean install && mvn clean install -f core/client.pom.xml && mvn clean install -f core/server.pom.xml \
 	&& cd /root/Tars/web/ && source /etc/profile && mvn clean package \
@@ -67,7 +67,7 @@ RUN rpm -Uvh https://repo.mysql.com/mysql57-community-release-el7-11.noarch.rpm 
 	
 ENV JAVA_HOME /usr/java/jdk-10.0.1
 
-ENV MAVEN_HOME /usr/local/apache-maven-3.5.3
+ENV MAVEN_HOME /usr/local/apache-maven-3.5.4
 
 # 是否将Tars系统进程的data目录挂载到外部存储，缺省为false以支持windows下使用
 ENV MOUNT_DATA false
@@ -86,8 +86,8 @@ COPY entrypoint.sh /sbin/
 
 ADD confs /root/confs
 
-ADD https://s3.amazonaws.com/download.fpcomplete.com/pid1/pid1-0.1.0-amd64 /sbin/pid1
-RUN chmod 755 /sbin/pid1
+ADD pid1-0.1.0-amd64 /sbin/pid1
+RUN chmod 755 /sbin/pid1 /sbin/entrypoint.sh
 ENTRYPOINT [ "/sbin/pid1" ]
 CMD bash -c '/sbin/entrypoint.sh start'
 
